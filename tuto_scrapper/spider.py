@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+import os
 import re
 import requests
-import pathlib
 import argparse
+import pathlib
 from bs4 import BeautifulSoup
 
 def parse_arguments(recursivity_level, data_path):
@@ -11,7 +12,9 @@ def parse_arguments(recursivity_level, data_path):
     parser.add_argument("-r", action='store_const', const=True)
     parser.add_argument("-l", nargs=1, type=int)
     parser.add_argument("-p", nargs=1, type=pathlib.Path)
+    parser.add_argument('URL')
     args = parser.parse_args()
+    print(args.URL)
     if not args.r and args.l:
         parser.error("Option '-l' need option '-r'")
         exit(1)
@@ -20,7 +23,8 @@ def parse_arguments(recursivity_level, data_path):
     elif args.r:
         recursivity_level = 5
     if args.p:
-        data_path = args.p
+        data_path = args.p[0]
+    return recursivity_level, data_path, args.URL
 
 def get_content_from_site(site):
     response = requests.get(site)
@@ -29,12 +33,14 @@ def get_content_from_site(site):
     urls = [img['src'] for img in img_tags]
     return urls
 
-def get_images(img_urls):
+def get_images(img_urls, data_path):
     for url in img_urls:
         filename = re.search(r'/([\w_-]+[.](jpg|jpeg|png|gif|bmp))$', url)
+        if (filename):
+            print("filename: " + str(filename.group(1)))
         if not filename:
             continue
-        with open(filename.group(1), 'wb') as f:
+        with open(data_path + "/" + str(filename.group(1)), 'wb') as f:
             if 'http' not in url:
                 # sometimes an image source can be relative 
                 # if it is provide the base url which also happens 
@@ -48,12 +54,15 @@ if __name__ == "__main__":
     recursivity_level = 0
     data_path = "data/"
 
-    parse_arguments(recursivity_level, data_path)
+    recursivity_level, data_pathi, site = parse_arguments(recursivity_level, data_path)
+
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
 
     print(recursivity_level)
     print(data_path)
 
-    site = 'http://www.github.com/Archips'
+    # site = 'http://www.github.com/Archips'
     img_urls = get_content_from_site(site)
-    get_images(img_urls)
+    get_images(img_urls, str(data_path))
 
