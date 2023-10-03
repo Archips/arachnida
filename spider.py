@@ -5,6 +5,7 @@ import re
 import requests
 import argparse
 import pathlib
+from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 
 def parse_arguments(recursivity_level, data_path):
@@ -14,7 +15,6 @@ def parse_arguments(recursivity_level, data_path):
     parser.add_argument("-p", nargs=1, type=pathlib.Path)
     parser.add_argument('URL')
     args = parser.parse_args()
-    print(args.URL)
     if not args.r and args.l:
         parser.error("Option '-l' need option '-r'")
         exit(1)
@@ -26,6 +26,12 @@ def parse_arguments(recursivity_level, data_path):
         data_path = args.p[0]
     return recursivity_level, data_path, args.URL
 
+def check_site(site):
+    url = urlparse(site)
+    if not url.scheme or url.netloc:
+        print(site + " : bad url")
+        exit(1)
+
 def get_content_from_site(site):
     response = requests.get(site)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -35,7 +41,7 @@ def get_content_from_site(site):
 
 def get_images(img_urls, data_path):
     for url in img_urls:
-        filename = re.search(r'/([\w_-]+[.](jpg|jpeg|png|gif|bmp))$', url)
+        filename = re.search(r'/([^/]+[.](jpg|jpeg|png|gif|bmp))', url)
         if (filename):
             print("filename: " + str(filename.group(1)))
         if not filename:
@@ -54,7 +60,9 @@ if __name__ == "__main__":
     recursivity_level = 0
     data_path = "data/"
 
-    recursivity_level, data_pathi, site = parse_arguments(recursivity_level, data_path)
+    recursivity_level, data_path, site = parse_arguments(recursivity_level, data_path)
+
+    check_site(site)
 
     if not os.path.exists(data_path):
         os.makedirs(data_path)
@@ -62,7 +70,6 @@ if __name__ == "__main__":
     print(recursivity_level)
     print(data_path)
 
-    # site = 'http://www.github.com/Archips'
     img_urls = get_content_from_site(site)
     get_images(img_urls, str(data_path))
 
