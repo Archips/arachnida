@@ -28,23 +28,25 @@ HEADER = """        _            _        _        _            _            _
 
 """
 
-def parse_arguments(recursivity_level, data_path):
+# def parse_arguments(recursivity_level, data_path):
+def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-r", "--recursive", action='store_const', const=True, help='Download recursively the images of the URL received')
     parser.add_argument("-l", "--level", nargs=1, type=int, help='if -r, indicate the depth level of the recursive download')
     parser.add_argument("-p", "--path", nargs=1, type=pathlib.Path, help='indicate the path of the downloaded images - default value is ./data')
     parser.add_argument('URL', help='Url of the site aimed to be scrapped - special character must be escape')
     args = parser.parse_args()
-    if not args.r and args.l:
-        parser.error("Option '-l' need option '-r'")
-        exit(1)
-    elif args.r and args.l:
-        recursivity_level = int(args.l[0])
-    elif args.r:
-        recursivity_level = 5
-    if args.p:
-        data_path = args.p[0]
-    return recursivity_level, data_path, args.URL
+    return args
+    # if not args.r and args.l:
+    #     parser.error("Option '-l' need option '-r'")
+    #     exit(1)
+    # elif args.r and args.l:
+    #     recursivity_level = int(args.l[0])
+    # elif args.r:
+    #     recursivity_level = 5
+    # if args.p:
+    #     data_path = args.p[0]
+    # return recursivity_level, data_path, args.URL
 
 def check_site(site):
     url = urlparse(site)
@@ -92,8 +94,21 @@ if __name__ == "__main__":
     recursivity_level = 1
     data_path = "data/"
 
-    recursivity_level, data_path, site = parse_arguments(recursivity_level, data_path)
+    # recursivity_level, data_path, site = parse_arguments(recursivity_level, data_path)
 
+    args = parse_arguments()
+    if not args.r:
+        if arg.l:
+            parser.error("Option '-l' need option '-r'")
+            exit(1)
+    if args.l:
+        recursivity_level =  int(args.r[0])
+    if args.r:
+        recursivity_level =  5
+    if args.p:
+        data_path = args.p[0]
+    if args.url:
+        site = args.URL
     check_site(site)
 
     if not os.path.exists(data_path):
