@@ -39,12 +39,12 @@ def parse_arguments(recursivity_level, data_path):
         parser.error("Option '-l' need option '-r'")
         exit(1)
     elif args.r and args.l:
-        recursivity_level = args.l
+        recursivity_level = int(args.l[0])
     elif args.r:
         recursivity_level = 5
     if args.p:
         data_path = args.p[0]
-    return int(recursivity_level[0]), data_path, args.URL
+    return recursivity_level, data_path, args.URL
 
 def check_site(site):
     url = urlparse(site)
@@ -103,10 +103,10 @@ if __name__ == "__main__":
     img_urls = get_content_from_site(site)
     get_images(img_urls, str(data_path))
     
-    if recursivity_level > 1:
-        recursivity_level -= 1
-    while recursivity_level >= 1:
+    recursivity_level -= 1
+    while recursivity_level > 0:
         site = site.rsplit('/', 1)[0]
         check_site(site)
         img_urls = get_content_from_site(site)
         get_images(img_urls, str(data_path))
+        recursivity_level -= 1
