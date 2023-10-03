@@ -30,10 +30,10 @@ HEADER = """        _            _        _        _            _            _
 
 def parse_arguments(recursivity_level, data_path):
     parser = argparse.ArgumentParser()
-    parser.add_argument("-r", action='store_const', const=True)
-    parser.add_argument("-l", nargs=1, type=int)
-    parser.add_argument("-p", nargs=1, type=pathlib.Path)
-    parser.add_argument('URL')
+    parser.add_argument("-r", "--recursive", action='store_const', const=True, help='Download recursively the images of the URL received')
+    parser.add_argument("-l", "--level", nargs=1, type=int, help='if -r, indicate the depth level of the recursive download')
+    parser.add_argument("-p", "--path", nargs=1, type=pathlib.Path, help='indicate the path of the downloaded images - default value is ./data')
+    parser.add_argument('URL', help='Url of the site aimed to be scrapped - special character must be escape')
     args = parser.parse_args()
     if not args.r and args.l:
         parser.error("Option '-l' need option '-r'")
