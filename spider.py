@@ -28,40 +28,37 @@ HEADER = """        _            _        _        _            _            _
 
 """
 
-# def parse_arguments(recursivity_level, data_path):
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-r", "--recursive", action='store_const', const=True, help='Download recursively the images of the URL received')
+    parser.add_argument("-r", "--recursive", action='store_true', help='Download recursively the images of the URL received')
     parser.add_argument("-l", "--level", nargs=1, type=int, help='if -r, indicate the depth level of the recursive download')
     parser.add_argument("-p", "--path", nargs=1, type=pathlib.Path, help='indicate the path of the downloaded images - default value is ./data')
     parser.add_argument('URL', help='Url of the site aimed to be scrapped - special character must be escape')
     args = parser.parse_args()
-    return args
-    # if not args.r and args.l:
-    #     parser.error("Option '-l' need option '-r'")
-    #     exit(1)
-    # elif args.r and args.l:
-    #     recursivity_level = int(args.l[0])
-    # elif args.r:
-    #     recursivity_level = 5
-    # if args.p:
-    #     data_path = args.p[0]
-    # return recursivity_level, data_path, args.URL
-
-def check_site(site):
-    url = urlparse(site)
-    if not url.scheme or not url.netloc:
-        print(site + " : bad url")
+    
+    if not args.recursive and args.level:
+        parser.error("Option '-l' need option '-r'")
         exit(1)
 
-def get_content_from_site(site):
-    response = requests.get(site)
+    if not url_parser(args.URL):
+        print(args.URL + " : bad url")
+    
+    return args
+
+def url_parser(url):
+    parsed_url = urlparse(url)
+    if not parsed_url.scheme or not parsed_url.netloc:
+        return 0
+    return 1
+
+def get_content_from_site(url):
+    response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     img_tags = soup.find_all('img')
     urls = [img['src'] for img in img_tags]
     return urls
 
-def get_images(img_urls, data_path):
+def get_images(img_urls, data_path, site):
 
     images_downloaded = 0
     size_download = 0.0
@@ -70,7 +67,7 @@ def get_images(img_urls, data_path):
         filename = re.search(r'/([^/]+[.](jpg|jpeg|png|gif|bmp))', url)
         if not filename:
             continue
-        if os.path.isfile(data_path + str(filename.group(1))):
+        if os.path.isfile(data_path + "/" + str(filename.group(1))):
             print(f"{WARNING}{BOLD}[Already downloaded]  {END}" + filename.group(1))
             continue
         with open(data_path + "/" + str(filename.group(1)), 'wb') as f:
@@ -89,39 +86,38 @@ def get_images(img_urls, data_path):
     
     print(f"{GREEN}{BOLD}\nImages downloaded : " + str(images_downloaded) + " - " + str(round(size_download, 1)) + f"kb{END}")   
 
+def spider(url, data_path, recursivity_level):
+    while recursivity_level > 0:
+        if not url_parser(url):
+            exit(1)
+        img_urls = get_content_from_site(url)
+        get_images(img_urls, str(data_path), url)
+        url = url.rsplit('/', 1)[0]
+        recursivity_level -= 1
+
 if __name__ == "__main__":
 
     recursivity_level = 1
     data_path = "data/"
 
-    # recursivity_level, data_path, site = parse_arguments(recursivity_level, data_path)
-
     args = parse_arguments()
-    if not args.r:
-        if arg.l:
-            parser.error("Option '-l' need option '-r'")
-            exit(1)
-    if args.l:
-        recursivity_level =  int(args.r[0])
-    if args.r:
+    if args.recursive:
         recursivity_level =  5
-    if args.p:
-        data_path = args.p[0]
-    if args.url:
-        site = args.URL
-    check_site(site)
+    if args.level:
+        recursivity_level =  int(args.level[0])
+    if args.path:
+        data_path = args.path[0]
+    if args.URL:
+        url = args.URL
 
     if not os.path.exists(data_path):
         os.makedirs(data_path)
+
+    if not os.access(data_path, os.R_OK | os.W_OK):
+        exit(1)
+
     os.system('clear')
+
     print(f"{GREEN}{BOLD}" + HEADER + f"{END}")
-    img_urls = get_content_from_site(site)
-    get_images(img_urls, str(data_path))
-    
-    recursivity_level -= 1
-    while recursivity_level > 0:
-        site = site.rsplit('/', 1)[0]
-        check_site(site)
-        img_urls = get_content_from_site(site)
-        get_images(img_urls, str(data_path))
-        recursivity_level -= 1
+    spider(url, data_path, recursivity_level)
+    exit(0)
