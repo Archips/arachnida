@@ -5,6 +5,7 @@ import re
 import requests
 import argparse
 import pathlib
+import signal
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
 
@@ -27,6 +28,9 @@ HEADER = """        _            _        _        _            _            _
                                                                         
 
 """
+
+def sig_handler(sig, frame):
+    exit(1)
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -51,18 +55,21 @@ def url_parser(url):
         return 0
     return 1
 
-def get_content_from_site(url):
-    response = requests.get(url)
+def get_images_urls(site_url):
+    response = requests.get(site_url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    img_tags = soup.find_all('img')
-    urls = [img['src'] for img in img_tags]
+    img_tag = soup.find_all('img')
+    urls = []
+    for img in img_tag:
+        src = img.get('src')
+        if src:
+            urls.append(src)
     return urls
 
-def get_images(img_urls, data_path, site):
+def download_images(img_urls, data_path, site_url):
 
     images_downloaded = 0
     size_download = 0.0
-    # print("Site : " + site)
     for url in img_urls:
         filename = re.search(r'/([^/]+[.](jpg|jpeg|png|gif|bmp))', url)
         if not filename:
@@ -73,9 +80,9 @@ def get_images(img_urls, data_path, site):
         with open(data_path + "/" + str(filename.group(1)), 'wb') as f:
             if 'http' not in url:
                 if url[0] == '/':
-                    url = site + url
+                    url = site_url + url
                 else:
-                    url = site + '/' + url
+                    url = site_url + '/' + url
             response = requests.get(url)
             f.write(response.content)
             f.close()
@@ -86,19 +93,21 @@ def get_images(img_urls, data_path, site):
     
     print(f"{GREEN}{BOLD}\nImages downloaded : " + str(images_downloaded) + " - " + str(round(size_download, 1)) + f"kb{END}")   
 
-def spider(url, data_path, recursivity_level):
+def spider(site_url, data_path, recursivity_level):
     while recursivity_level > 0:
-        if not url_parser(url):
+        if not url_parser(site_url):
             exit(1)
-        img_urls = get_content_from_site(url)
-        get_images(img_urls, str(data_path), url)
-        url = url.rsplit('/', 1)[0]
+        img_urls = get_images_urls(site_url)
+        download_images(img_urls, str(data_path), site_url)
+        site_url = site_url.rsplit('/', 1)[0]
         recursivity_level -= 1
 
 if __name__ == "__main__":
 
     recursivity_level = 1
     data_path = "data/"
+
+    signal.signal(signal.SIGINT, sig_handler)
 
     args = parse_arguments()
     if args.recursive:
@@ -108,7 +117,7 @@ if __name__ == "__main__":
     if args.path:
         data_path = args.path[0]
     if args.URL:
-        url = args.URL
+        site_url = args.URL
 
     if not os.path.exists(data_path):
         os.makedirs(data_path)
@@ -119,5 +128,5 @@ if __name__ == "__main__":
     os.system('clear')
 
     print(f"{GREEN}{BOLD}" + HEADER + f"{END}")
-    spider(url, data_path, recursivity_level)
+    spider(site_url, data_path, recursivity_level)
     exit(0)
