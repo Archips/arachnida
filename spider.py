@@ -62,7 +62,7 @@ def get_images(img_urls, data_path, site):
 
     images_downloaded = 0
     size_download = 0.0
-
+    # print("Site : " + site)
     for url in img_urls:
         filename = re.search(r'/([^/]+[.](jpg|jpeg|png|gif|bmp))', url)
         if not filename:
@@ -72,10 +72,10 @@ def get_images(img_urls, data_path, site):
             continue
         with open(data_path + "/" + str(filename.group(1)), 'wb') as f:
             if 'http' not in url:
-                # sometimes an image source can be relative 
-                # if it is provide the base url which also happens 
-                # to be the site variable atm. 
-                url = '{}{}'.format(site, url)
+                if url[0] == '/':
+                    url = site + url
+                else:
+                    url = site + '/' + url
             response = requests.get(url)
             f.write(response.content)
             f.close()
