@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import re
-import requests
+import sys
 import argparse
 import pathlib
-from urllib.parse import urlparse, urljoin
-from bs4 import BeautifulSoup
-
 from PIL import Image
 from PIL.ExifTags import TAGS
 
@@ -33,13 +29,21 @@ HEADER = """        _            _        _        _            _            _
 """
 
 def parse_arguments():
-    return 0
-
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('IMG', nargs='*', help='images path')
+    args = parser.parse_args()
+    return args
 
 def scorpion(img):
 
-    image = Image.open(img)
- 
+    try:
+        image = Image.open(img)
+    except:
+        print(f"{WARNING}{BOLD}Image : [" + img + f"] is unreadable{END}")
+        return
+
+    print(f"{BOLD}Metadata\n{END}");
     # extract other basic metadata
     info_dict = {
         "Filename": image.filename,
@@ -54,10 +58,11 @@ def scorpion(img):
 
     for label,value in info_dict.items():
         print(f"{label:25}: {value}")
-
+    
     # extract EXIF data
     exifdata = image.getexif()
 
+    print(f"{BOLD}\nExif\n{END}");
     # iterating over all EXIF data fields
     for tag_id in exifdata:
         # get the tag name, instead of human unreadable tag id
@@ -69,11 +74,14 @@ def scorpion(img):
         print(f"{tag:25}: {data}")
 
 if __name__ == "__main__":
-
+    
     args = parse_arguments()
 
     os.system('clear')
-
+    
     print(f"{GREEN}{BOLD}" + HEADER + f"{END}")
-    scorpion("/mnt/nfs/homes/athirion/Pictures/athirion.jpg")
+    for arg in args.IMG:
+        print(f"{GREEN}{BOLD}\nImage : [" + arg + f"]{END}\n")
+        scorpion(arg)
+
     exit(0)
