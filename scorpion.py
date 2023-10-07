@@ -77,32 +77,38 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
-def scorpion(img):
 
-    try:
-        image = Image.open(img)
-    except:
-        print(f"{WARNING}{BOLD}Image : [" + img + f"] is unreadable{END}")
-        return
-
+def extract_metadata(image):
     print(f"{BOLD}Metadata\n{END}");
     # extract other basic metadata
     info_dict = {
         "Filename": image.filename,
+        "Image Format": image.format,
         "Image Size": image.size,
         "Image Height": image.height,
         "Image Width": image.width,
-        "Image Format": image.format,
         "Image Mode": image.mode,
+        "Image Color": image.palette,
         "Image is Animated": getattr(image, "is_animated", False),
         "Frames in Image": getattr(image, "n_frames", 1)
     }
 
     for label,value in info_dict.items():
         print(f"{label:25}: {value}")
-    
+
+    for label, value in image.info.items():
+        if isinstance(value, bytes):
+            value = value.decode()
+        print(f"{label:25}: {value}")
+
+
+def extract_exif(image):
     # extract EXIF data
     exifdata = image.getexif()
+
+    if not exifdata:
+        print(f"{WARNING}{BOLD}\nNo exif data\n{END}");
+        return
 
     print(f"{BOLD}\nExif\n{END}");
     # iterating over all EXIF data fields
@@ -114,6 +120,19 @@ def scorpion(img):
         if isinstance(data, bytes):
             data = data.decode()
         print(f"{tag:25}: {data}")
+
+
+def scorpion(img):
+
+    try:
+        image = Image.open(img)
+    except:
+        print(f"{WARNING}{BOLD}Image data is unreadable{END}")
+        return
+
+    extract_metadata(image)
+    extract_exif(image)
+
 
 if __name__ == "__main__":
     
