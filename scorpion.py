@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 import pathlib
+import signal
 from PIL import Image
 from PIL.ExifTags import TAGS
 
@@ -69,6 +70,9 @@ HEADER = """
                                                                                                          
 
 # """
+
+def sig_handler(sig, frame):
+    exit(1)
 
 def parse_arguments():
     
@@ -137,6 +141,8 @@ def scorpion(img):
 if __name__ == "__main__":
     
     args = parse_arguments()
+    
+    signal.signal(signal.SIGINT, sig_handler)
 
     os.system('clear')
     
