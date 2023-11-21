@@ -31,7 +31,7 @@ HEADER = """        _            _        _        _            _            _
 """
 
 def sig_handler(sig, frame):
-    exit(1)
+    sys.exit(1)
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -43,7 +43,7 @@ def parse_arguments():
     
     if not args.recursive and args.level:
         parser.error("Option '-l' need option '-r'")
-        exit(1)
+        sys.exit(1)
 
     if not url_parser(args.URL):
         print(args.URL + " : bad url")
@@ -97,7 +97,7 @@ def download_images(img_urls, data_path, site_url):
 def spider(site_url, data_path, recursivity_level):
     while recursivity_level > 0:
         if not url_parser(site_url):
-            exit(1)
+            sys.exit(1)
         img_urls = get_images_urls(site_url)
         download_images(img_urls, str(data_path), site_url)
         site_url = site_url.rsplit('/', 1)[0]
@@ -124,10 +124,10 @@ if __name__ == "__main__":
         os.makedirs(data_path)
 
     if not os.access(data_path, os.R_OK | os.W_OK):
-        exit(1)
+        sys.exit(1)
 
     os.system('clear')
 
     print(f"{GREEN}{BOLD}" + HEADER + f"{END}")
     spider(site_url, data_path, recursivity_level)
-    exit(0)
+    sys.exit(0)
