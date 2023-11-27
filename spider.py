@@ -33,10 +33,27 @@ HEADER = """        _            _        _        _            _            _
 """
 
 def sig_handler(sig, frame):
+    
+    """
+    
+    Signal handler for SIGINT (Ctrl+C).
+    Exits the program with status code 1.
+    
+    """
+
     sys.exit(1)
 
 def parse_arguments():
 
+    """
+    
+    Parse command line arguments.
+
+    Returns:
+    argparse.Namespace: The parsed arguments.
+    
+    """
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("-r", "--recursive", action='store_true', help='Download recursively the images of the URL received')
     parser.add_argument("-l", "--level", nargs=1, type=int, help='if -r, indicate the depth level of the recursive download')
@@ -54,12 +71,43 @@ def parse_arguments():
     return args
 
 def url_parser(url):
+    
+    """
+    
+    Parse and validate the URL.
+
+    Parameters:
+    - url (str): The URL to be parsed.
+
+    Returns:
+    int: 1 if the URL is valid, 0 otherwise.
+    
+    """
+
     parsed_url = urlparse(url)
     if not parsed_url.scheme or not parsed_url.netloc:
         return 0
     return 1
 
 def get_images_urls(site_url):
+
+    """
+    
+    Retrieve image URLs from the specified site URL.
+
+    Parameters:
+    - site_url (str): The URL of the site to be scraped.
+
+    Returns:
+    list: List of image URLs.
+
+    Raises:
+    - requests.exceptions.Timeout: If the request times out.
+    - requests.exceptions.HTTPError: If an HTTP error occurs.
+    - requests.exceptions.RequestException: If a general request exception occurs.
+    - requests.exceptions.ConnectionError: If a connection error occurs.
+    
+    """
 
     try:
         response = requests.get(site_url)
@@ -87,6 +135,23 @@ def get_images_urls(site_url):
     return urls
 
 def download_images(img_urls, data_path, site_url):
+
+    """
+
+    Download images from the provided URLs.
+
+    Parameters:
+    - img_urls (list): List of image URLs.
+    - data_path (str): Path where the images will be saved.
+    - site_url (str): The base URL of the site.
+
+    Returns:
+    None
+
+    Raises:
+    - requests.RequestException: If an error occurs during image download.
+    
+    """
 
     images_downloaded = 0
     size_download = 0.0
@@ -118,6 +183,24 @@ def download_images(img_urls, data_path, site_url):
     print(f"{GREEN}{BOLD}\nImages downloaded : " + str(images_downloaded) + " - " + str(round(size_download, 1)) + f"kb{END}")   
 
 def spider(site_url, data_path, recursivity_level):
+    
+    """
+    
+    Perform web scraping of images recursively.
+
+    Parameters:
+    - site_url (str): The URL of the site to be scraped.
+    - data_path (str): Path where the images will be saved.
+    - recursivity_level (int): Depth level for recursive download.
+
+    Returns:
+    None
+
+    Raises:
+    - sys.exit(1): If the URL is invalid.
+    
+    """
+
     while recursivity_level > 0:
         if not url_parser(site_url):
             sys.exit(1)
@@ -128,6 +211,15 @@ def spider(site_url, data_path, recursivity_level):
 
 def display_header():
     
+    """
+    
+    Display the header content.
+
+    Returns:
+    None
+    
+    """
+
     os.system('clear')
     print(f"{GREEN}{BOLD}" + HEADER + f"{END}")
 
@@ -140,8 +232,6 @@ if __name__ == "__main__":
     display_header()
 
     signal.signal(signal.SIGINT, sig_handler)
-    print(type(signal.SIGINT))
-    print(type(sig_handler))
     args = parse_arguments()
     if args.recursive:
         recursivity_level =  5
@@ -157,7 +247,6 @@ if __name__ == "__main__":
 
     if not os.access(data_path, os.R_OK | os.W_OK):
         sys.exit(1)
-
 
     spider(site_url, data_path, recursivity_level)
     sys.exit(0)
