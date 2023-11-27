@@ -35,7 +35,7 @@ def sig_handler(sig, frame):
 def parse_arguments():
     
     parser = argparse.ArgumentParser()
-    parser.add_argument('IMG', nargs='*', help='images path')
+    parser.add_argument('IMG', nargs='+', help='images path')
     args = parser.parse_args()
     return args
 
@@ -60,7 +60,10 @@ def extract_metadata(image):
 
     for label, value in image.info.items():
         if isinstance(value, bytes):
-            value = value.decode()
+            try:
+                value = value.decode()
+            except:
+                continue
         print(f"{label:25}: {value}")
 
 

@@ -249,4 +249,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     spider(site_url, data_path, recursivity_level)
+    
     sys.exit(0)
