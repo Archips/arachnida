@@ -1,5 +1,27 @@
 #!/usr/bin/env python3
 
+"""
+scorpion.py - A script to extract metadata and Exif data from images.
+
+Usage:
+    scorpion.py IMG [IMG ...]
+
+Options:
+    IMG         Path(s) to the image file(s).
+
+Description:
+    This script takes one or more image file paths as input and extracts metadata
+    as well as Exif data from each image. The extracted information includes
+    basic details such as filename, image format, size, height, width, mode,
+    palette, animation status, and the number of frames. Additionally, it extracts
+    Exif data if available.
+
+Dependencies:
+    - Python 3
+    - Pillow (PIL) library for image processing
+
+"""
+
 import os
 import sys
 import argparse

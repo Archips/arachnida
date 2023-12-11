@@ -1,5 +1,28 @@
 #!/usr/bin/env python3
 
+"""
+spider.py - A script for web scraping images from a website.
+
+Usage:
+    spider.py [-r] [-l LEVEL] [-p PATH] URL
+
+Options:
+    -r, --recursive     Download images recursively from the URL.
+    -l LEVEL, --level LEVEL    Set the depth level for recursive download.
+    -p PATH, --path PATH      Set the path for downloaded images (default is ./data).
+    URL                 URL of the site to be scraped (special characters must be escaped).
+
+Description:
+    This script takes a website URL as input and downloads images from the specified site.
+    Options allow for recursive download, setting the depth level, and specifying the download path.
+
+Dependencies:
+    - Python 3
+    - requests library for HTTP requests
+    - BeautifulSoup (bs4) library for HTML parsing
+
+"""
+
 import os
 import re
 import requests
