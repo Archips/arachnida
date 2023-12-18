@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """
 scorpion.py - A script to extract metadata and Exif data from images.
@@ -27,15 +27,16 @@ import sys
 import argparse
 import pathlib
 import signal
-from PIL import Image
-from PIL.ExifTags import TAGS
+from exif import Image
+import webbrowser
 
 BOLD = '\033[1m'
 GREEN = "\033[0;32m"
 WARNING = '\033[93m'
 END = "\033[0m"
+EXIF_MEMBER = ["delete", "delete_all", "get", "get_all", "get_file", "get_thumbnail", "list_all", "has_exif", "set"]
 
-HEADER = """        _            _        _        _            _            _      
+HEADER = """
         _             _             _            _           _        _          _            _          
        / /\         /\ \           /\ \         /\ \        /\ \     /\ \       /\ \         /\ \     _  
       / /  \       /  \ \         /  \ \       /  \ \      /  \ \    \ \ \     /  \ \       /  \ \   /\_
@@ -52,7 +53,16 @@ HEADER = """        _            _        _        _            _            _
 """
 
 def sig_handler(sig, frame):
-    sys.sys.exit(1)
+    
+        
+    """
+    
+    Signal handler for SIGINT (Ctrl+C).
+    Exits the program with status code 1.
+    
+    """
+
+    sys.exit(1)
 
 def parse_arguments():
     
@@ -61,65 +71,102 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
+def basic_metadata(image, image_members):
 
-def extract_metadata(image):
-    print(f"{BOLD}Metadata\n{END}");
-    # extract other basic metadata
-    info_dict = {
-        "Filename": image.filename,
-        "Image Format": image.format,
-        "Image Size": image.size,
-        "Image Height": image.height,
-        "Image Width": image.width,
-        "Image Mode": image.mode,
-        "Image Color": image.palette,
-        "Image is Animated": getattr(image, "is_animated", False),
-        "Frames in Image": getattr(image, "n_frames", 1)
-    }
+    print(f"{GREEN}{BOLD}Metadata{END}")
+    print("--------------------\n")
+    print(f"")
 
-    for label,value in info_dict.items():
-        print(f"{label:25}: {value}")
+def date_time_exif(image, image_members):
 
-    for label, value in image.info.items():
-        if isinstance(value, bytes):
-            try:
-                value = value.decode()
-            except:
-                continue
-        print(f"{label:25}: {value}")
+    if 'datetime_original' in image_members:
+        print(f"{GREEN}{BOLD}Date - Time{END}")
+        print("--------------------\n")
+        print(f"{BOLD}Original datetime: {END}{image.get('datetime_original', 'Unkown')}")
+        if 'offset_time' in image_members:
+            print(f"{BOLD}Datetime offset UTC: {END}{image.get('offset_time')}")
+        if 'datetime' in image_members:
+            print(f"{BOLD}Datetime: {END}{image.get('datetime')}")
+        if 'datetime_digitized' in image_members:
+            print(f"{BOLD}Datetime digitized: {END}{image.get('datetime_digitized')}")
+        print("")
 
+def format_dms_coordinates(coordinates):
+    return f"{coordinates[0]}° {coordinates[1]}\' {coordinates[2]}\""
 
-def extract_exif(image):
-    # extract EXIF data
-    exifdata = image.getexif()
+def dms_coordinates_to_dd_coordinates(coordinates, coordinates_ref):
+    decimal_degrees = coordinates[0] + \
+                      coordinates[1] / 60 + \
+                      coordinates[2] / 3600
+    
+    if coordinates_ref == "S" or coordinates_ref == "W":
+        decimal_degrees = -decimal_degrees
+    
+    return decimal_degrees
 
-    if not exifdata:
-        print(f"{WARNING}{BOLD}\nNo exif data\n{END}");
-        return
+def draw_map_for_location(latitude, latitude_ref, longitude, longitude_ref):
+    
+    decimal_latitude = dms_coordinates_to_dd_coordinates(latitude, latitude_ref)
+    decimal_longitude = dms_coordinates_to_dd_coordinates(longitude, longitude_ref)
+    url = f"https://www.google.com/maps?q={decimal_latitude},{decimal_longitude}"
+    webbrowser.open(url)
 
-    print(f"{BOLD}\nExif\n{END}");
-    # iterating over all EXIF data fields
-    for tag_id in exifdata:
-        # get the tag name, instead of human unreadable tag id
-        tag = TAGS.get(tag_id, tag_id)
-        data = exifdata.get(tag_id)
-        # decode bytes
-        if isinstance(data, bytes):
-            data = data.decode()
-        print(f"{tag:25}: {data}")
+def geo_location_exif(image, image_members):
 
+    if 'gps_latitude' in image_members:
+        print(f"{GREEN}{BOLD}Coordinates{END}")
+        print("---------------------")
+        print(f"Latitude (DMS): {format_dms_coordinates(image.gps_latitude)} {image.gps_latitude_ref}")
+        print(f"Longitude (DMS): {format_dms_coordinates(image.gps_longitude)} {image.gps_longitude_ref}\n")
+        print(f"Latitude (DD): {dms_coordinates_to_dd_coordinates(image.gps_latitude, image.gps_latitude_ref)}")
+        print(f"Longitude (DD): {dms_coordinates_to_dd_coordinates(image.gps_longitude, image.gps_longitude_ref)}\n")
 
-def scorpion(img):
+        draw_map_for_location(image.gps_latitude, 
+                              image.gps_latitude_ref, 
+                              image.gps_longitude,
+                              image.gps_longitude_ref)
+
+def device_exif(image, image_members):
+    
+    if 'make' in image_members:
+        print(f"{GREEN}{BOLD}Device information{END}")
+        print("--------------------\n")
+        print(f"{BOLD}Make: {END}{image.make}")
+        print(f"{BOLD}Model: {END}{image.model}\n")
+
+def lens_exif(image, image_members):
+
+    if 'lens_make' in image_members:
+        print(f"{GREEN}{BOLD}Lens and OS{END}")
+        print("--------------------\n")
+        print(f"{BOLD}Lens make: {END}{image.get('lens_make', 'Unkown')}")
+        if 'lens_model' in image_members:
+            print(f"{BOLD}Lens model: {END}{image.get('lens_model', 'Unkown')}")
+        if 'lens_specification' in image_members:
+            print(f"{BOLD}Lens specification: {END}{image.get('lens_specification', 'Unkown')}")
+        if 'software' in image_members:
+            print(f"{BOLD}OS version: {END}{image.get('software', 'Unkown')}\n")
+
+def scorpion(img_path):
+
+    with open(img_path, "rb") as image_file:
+        image = Image(image_file)
 
     try:
-        image = Image.open(img)
+        status = f"{GREEN}{BOLD}EXIF version: {END}{image.exif_version}\n"
+        print(status)
     except:
-        print(f"{WARNING}{BOLD}Image data is unreadable{END}")
+        print("Image does not contain any EXIF information.\n")
         return
 
-    extract_metadata(image)
-    extract_exif(image)
 
+    image_members = dir(image)
+    print(f"*** {image_members} ***\n")
+    date_time_exif(image, image_members)
+    basic_metadata(image, image_members) 
+    geo_location_exif(image, image_members)
+    device_exif(image, image_members)
+    lens_exif(image, image_members)
 
 if __name__ == "__main__":
     

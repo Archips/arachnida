@@ -17,16 +17,16 @@ Dependencies:
 
 **Global Variables**
 ---------------
-- **TAGS**
 - **BOLD**
 - **GREEN**
 - **WARNING**
 - **END**
+- **EXIF_MEMBER**
 - **HEADER**
 
 ---
 
-<a href="../scorpion.py#L54"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../scorpion.py#L55"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `sig_handler`
 
@@ -34,14 +34,12 @@ Dependencies:
 sig_handler(sig, frame)
 ```
 
-
-
-
+Signal handler for SIGINT (Ctrl+C). Exits the program with status code 1. 
 
 
 ---
 
-<a href="../scorpion.py#L57"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../scorpion.py#L67"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `parse_arguments`
 
@@ -56,12 +54,12 @@ parse_arguments()
 
 ---
 
-<a href="../scorpion.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../scorpion.py#L74"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>function</kbd> `extract_metadata`
+## <kbd>function</kbd> `basic_metadata`
 
 ```python
-extract_metadata(image)
+basic_metadata(image, image_members)
 ```
 
 
@@ -71,12 +69,12 @@ extract_metadata(image)
 
 ---
 
-<a href="../scorpion.py#L92"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../scorpion.py#L80"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>function</kbd> `extract_exif`
+## <kbd>function</kbd> `date_time_exif`
 
 ```python
-extract_exif(image)
+date_time_exif(image, image_members)
 ```
 
 
@@ -86,12 +84,102 @@ extract_exif(image)
 
 ---
 
-<a href="../scorpion.py#L112"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../scorpion.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `format_dms_coordinates`
+
+```python
+format_dms_coordinates(coordinates)
+```
+
+
+
+
+
+
+---
+
+<a href="../scorpion.py#L97"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `dms_coordinates_to_dd_coordinates`
+
+```python
+dms_coordinates_to_dd_coordinates(coordinates, coordinates_ref)
+```
+
+
+
+
+
+
+---
+
+<a href="../scorpion.py#L107"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `draw_map_for_location`
+
+```python
+draw_map_for_location(latitude, latitude_ref, longitude, longitude_ref)
+```
+
+
+
+
+
+
+---
+
+<a href="../scorpion.py#L114"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `geo_location_exif`
+
+```python
+geo_location_exif(image, image_members)
+```
+
+
+
+
+
+
+---
+
+<a href="../scorpion.py#L129"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `device_exif`
+
+```python
+device_exif(image, image_members)
+```
+
+
+
+
+
+
+---
+
+<a href="../scorpion.py#L137"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `lens_exif`
+
+```python
+lens_exif(image, image_members)
+```
+
+
+
+
+
+
+---
+
+<a href="../scorpion.py#L150"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `scorpion`
 
 ```python
-scorpion(img)
+scorpion(img_path)
 ```
 
 
